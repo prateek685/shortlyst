@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.log
+secrets/
+
+# Local-only: tool settings, old backups, internal hiring documents
+.claude/
+extension-backup-*/
+*.pdf

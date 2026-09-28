@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Shortlyst",
+  "version": "0.2.0",
+  "description": "Classify LinkedIn candidate profiles against role requirements using the Jev model.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu6fJooJ9uIsgiVCc5EJOp2fRQHhu8ECRKVxbzuacIqwDubhryJG0NQ/h59LAZdtw9ssK+CukX2nTGgWlFnFq2wYY985NgGkEXvt4teP/YFcWn/Gg2j4uA+tLp5o2vCAsD2qYnqguQnjblFCZDiyuxwEqpU0V0PABpsS02oQWDpAnyPjNxZ8RkejdWJW3HZkHiAjhFzqHVFu6v88MYyrqj5dMwJjOwpcrcik0rkHock5EO+B61FQM3Bzq5Pq81kYA2sgvy8lOUJ6CuUiSiX+RUz9VeUq2/LBomsyW0Pz0BAS739Woje8HOn5x+mHYaVVVLiLAc3/9PfsxD0y1qkSwGQIDAQAB",
+  "permissions": ["storage", "sidePanel", "tabs", "identity", "scripting"],
+  "host_permissions": ["http://localhost:3000/*", "*://*.linkedin.com/*"],
+  "oauth2": {
+    "client_id": "104547179613-lg78oj3itb0qjl5hd58t76eo771pkomu.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/drive.metadata.readonly"
+    ]
+  },
+  "background": {
+    "service_worker": "dist/background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/in/*"],
+      "js": ["dist/content/page-reader.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "options_page": "src/options/index.html",
+  "action": {
+    "default_title": "Shortlyst"
+  }
+}

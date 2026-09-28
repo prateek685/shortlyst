@@ -1,0 +1,15 @@
+{
+  "name": "shortlyst-extension",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.content.json",
+    "watch:app": "tsc -p tsconfig.json --watch",
+    "watch:content": "tsc -p tsconfig.content.json --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.0",
+    "typescript": "^7.0.2"
+  }
+}

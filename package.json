@@ -1,0 +1,46 @@
+{
+  "name": "shortlyst",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jev-based candidate classification API for first-level recruitment filtering",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "start:dev": "ts-node-dev --respawn src/main.ts",
+    "test": "jest --selectProjects unit",
+    "test:e2e": "jest --selectProjects e2e",
+    "eval": "tsx tests/evals/classification.eval.ts",
+    "seed:eval": "tsx scripts/seed-eval-dataset.ts",
+    "migrate": "tsx scripts/migrate.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.0.4",
+    "@nestjs/core": "^12.0.4",
+    "@nestjs/platform-express": "^12.0.4",
+    "@nestjs/typeorm": "^12.0.1",
+    "@typesafe-ai/sdk": "^0.6.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "^18.0.3",
+    "langfuse": "^3.39.2",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^1.1.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^12.0.4",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "jest": "^30.5.2",
+    "supertest": "^7.3.0",
+    "ts-jest": "^29.4.12",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  // Content scripts are always injected as classic (non-module) scripts —
+  // Chrome has no manifest option to mark them as ES modules, unlike the
+  // background service worker. "module": "es2022" (not NodeNext) avoids tsc
+  // emitting a trailing `export {}`, which would otherwise be a syntax error
+  // here since the script isn't loaded as a module.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2022",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src/content"],
+  "exclude": []
+}
