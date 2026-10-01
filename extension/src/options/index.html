@@ -384,6 +384,121 @@
         color: var(--danger-text);
       }
 
+      .recommendation-needs_review {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+      .recommendation-not_candidate {
+        background: #f3f4f6;
+        color: var(--text-muted);
+      }
+
+      /* ---------- Source badge + links ---------- */
+      .source-badge {
+        display: inline-block;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        margin-left: 6px;
+        vertical-align: 1px;
+      }
+      .table-link {
+        color: var(--primary);
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .table-link:hover {
+        text-decoration: underline;
+      }
+
+      /* ---------- Mailboxes ---------- */
+      .mailbox-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .mailbox-row:last-of-type {
+        border-bottom: none;
+      }
+      .mailbox-address {
+        font-weight: 600;
+      }
+      .mailbox-meta {
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+      .mailbox-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+      }
+      .mailbox-actions button {
+        padding: 0.4rem 0.8rem;
+        font-size: 12px;
+      }
+      .status-pill {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 999px;
+        margin-left: 6px;
+      }
+      .status-connected {
+        background: var(--success-bg);
+        color: var(--success-text);
+      }
+      .status-disconnected {
+        background: var(--danger-bg);
+        color: var(--danger-text);
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin: 0.5rem 0 1rem;
+      }
+      .stat {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 0.75rem;
+      }
+      .stat-value {
+        font-size: 18px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat-label {
+        font-size: 11.5px;
+        color: var(--text-muted);
+      }
+      .stat-warning {
+        border-color: var(--warning-text);
+        background: var(--warning-bg);
+      }
+      .connect-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+      .thread-subject {
+        font-weight: 600;
+      }
+      .thread-reason {
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
       /* ---------- Candidates table ---------- */
       .data-table {
         width: 100%;
@@ -533,6 +648,7 @@
       <nav class="sidebar">
         <button class="nav-item" type="button" data-section="candidates">Candidates</button>
         <button class="nav-item" type="button" data-section="roles">Roles</button>
+        <button class="nav-item" type="button" data-section="mailboxes">Mailboxes</button>
         <button class="nav-item" type="button" data-section="sheet">Sheet</button>
       </nav>
 
@@ -561,6 +677,49 @@
             <div id="role-detail" class="role-detail">
               <p class="hint">Select a role to see its criteria.</p>
             </div>
+          </div>
+        </section>
+
+        <section id="section-mailboxes" hidden>
+          <h2 class="section-title">Mailboxes</h2>
+
+          <div class="card">
+            <p class="card-title">Connected mailboxes</p>
+            <p class="card-hint">
+              Shortlyst checks each connected mailbox every few minutes, classifies new applications and tags each email
+              thread (Shortlyst/Contact, /Maybe, /Reject, /Needs review, /Not a candidate). It only reads mail and adds those
+              tags — nothing is deleted, moved or replied to.
+            </p>
+            <div id="mailbox-list"></div>
+            <div id="mailbox-connect" class="connect-row"></div>
+            <span id="mailbox-status" class="picker-status"></span>
+          </div>
+
+          <div class="card">
+            <p class="card-title">Processing</p>
+            <div id="mail-stats" class="stat-grid"></div>
+            <div class="actions" style="margin-top: 0">
+              <button id="mail-retry-button" type="button" class="secondary-button">Retry failed</button>
+              <span id="mail-lag" class="picker-status" style="margin-top: 0"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <p class="card-title">Recent emails</p>
+            <p id="mail-threads-status" class="picker-status"></p>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>Email</th>
+                  <th>Received</th>
+                  <th>Outcome</th>
+                  <th>Role</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="mail-threads-tbody"></tbody>
+            </table>
           </div>
         </section>
 

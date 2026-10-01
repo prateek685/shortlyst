@@ -35,6 +35,7 @@ export function parseRolesFromSheetRows(
     const thresholdRow = thresholdsByRole.find((t) => t.role_id === roleId);
     return {
       roleId,
+      description: thresholdRow?.description || undefined,
       dimensions: dimensionsByRole
         .filter((d) => d.role_id === roleId)
         .map((d) => ({

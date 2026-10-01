@@ -21,8 +21,21 @@ export class ClassificationService {
   ) {}
 
   async classify(request: ClassifyRequestDto): Promise<ClassificationResult> {
-    const role = await this.loadRoleOrThrow(request.roleId);
     const candidate = this.resolveProfileText(request.candidate);
+    const { result } = await this.classifyForRole(candidate, request.roleId);
+    return result;
+  }
+
+  /**
+   * Classifies a candidate against a role and records it — the shared path
+   * for every intake (the /classify endpoint and the mail pipeline). Returns
+   * the stored ids too, so the mail pipeline can link its thread to them.
+   */
+  async classifyForRole(
+    candidate: CandidateInput,
+    roleId: string,
+  ): Promise<{ result: ClassificationResult; candidateId: string; resultId: string }> {
+    const role = await this.loadRoleOrThrow(roleId);
 
     // Same profile text + same role criteria + same model = byte-identical
     // Jev input, so an earlier answer is reused instead of paying for (and
@@ -34,9 +47,13 @@ export class ClassificationService {
     const result = cached ?? (await classifyCandidate(candidate, role));
 
     const candidateRow = await this.results.upsertCandidate(candidate);
-    await this.results.insertClassificationResult(candidateRow, role.roleId, result, inputHash);
+    const resultRow = await this.results.insertClassificationResult(candidateRow, role.roleId, result, inputHash);
 
-    return cached ? { ...result, cached: true } : result;
+    return {
+      result: cached ? { ...result, cached: true } : result,
+      candidateId: candidateRow.id,
+      resultId: resultRow.id,
+    };
   }
 
   // profileText is optional on the wire (the LinkedIn extension path only

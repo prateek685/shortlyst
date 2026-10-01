@@ -17,6 +17,11 @@ export class RoleEntity {
   @Column({ name: "confidence_floor", type: "numeric" })
   confidenceFloor!: number;
 
+  // One line describing the role, from the Roles sheet's thresholds tab —
+  // what the mail triage's role "choice" shows Jev for this role.
+  @Column({ type: "text", nullable: true })
+  description!: string | null;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt!: Date;
 

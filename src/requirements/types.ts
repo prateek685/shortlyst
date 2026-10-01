@@ -19,6 +19,9 @@ export interface RoleThresholds {
 
 export interface RoleRequirements {
   roleId: string;
+  /** one-line summary of the role (Roles sheet, thresholds tab) — used by
+   * the mail triage to tell Jev what each open role is */
+  description?: string;
   dimensions: RoleDimension[];
   mustHaves: RoleMustHave[];
   thresholds: RoleThresholds;

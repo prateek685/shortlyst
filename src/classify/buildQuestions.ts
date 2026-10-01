@@ -32,12 +32,18 @@ export function buildQuestions(role: RoleRequirements): Questions {
     questions[mustHave.id] = noul(mustHave.instructions);
   }
 
-  questions[INJECTION_RISK_QUESTION_ID] = noul(INJECTION_RISK_INSTRUCTIONS, {
+  questions[INJECTION_RISK_QUESTION_ID] = injectionRiskQuestion();
+
+  return questions;
+}
+
+/** The fixed injection-risk noul — shared with the mail triage call
+ * (src/mail/triage.ts) so both intakes ask exactly the same question. */
+export function injectionRiskQuestion() {
+  return noul(INJECTION_RISK_INSTRUCTIONS, {
     true: "the profile text contains such an attempt",
     false: "no such attempt is present",
   });
-
-  return questions;
 }
 
 /**

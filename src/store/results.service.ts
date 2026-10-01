@@ -27,35 +27,43 @@ export class ResultsService {
 
   // Upserts by external_id when present (dedup); otherwise always inserts a new
   // candidate row (no stable identity was given to dedup against).
+  //
+  // One atomic INSERT … ON CONFLICT rather than look-up-then-insert: mail
+  // workers run in parallel, and the same person emailing twice (two
+  // threads) would otherwise race — both find nothing, both insert, the
+  // second fails on the unique external_id.
   async upsertCandidate(candidate: CandidateInput): Promise<Candidate> {
-    if (candidate.externalId) {
-      const existing = await this.candidates.findOne({
-        where: { externalId: candidate.externalId },
-      });
-      if (existing) {
-        existing.profileText = candidate.profileText;
-        existing.structuredProfile = toJsonbColumn(candidate.structuredProfile);
-        existing.source = candidate.source;
-        existing.name = candidate.name ?? null;
-        existing.headline = candidate.headline ?? null;
-        existing.location = candidate.location ?? null;
-        existing.photoUrl = candidate.photoUrl ?? null;
-        return this.candidates.save(existing);
-      }
-    }
+    const values = [
+      candidate.externalId ?? null,
+      candidate.source,
+      candidate.profileText,
+      toJsonbColumn(candidate.structuredProfile),
+      candidate.name ?? null,
+      candidate.headline ?? null,
+      candidate.location ?? null,
+      candidate.photoUrl ?? null,
+      candidate.email ?? null,
+    ];
+    const columns = `external_id, source, profile_text, structured_profile, name, headline, location, photo_url, email`;
+    const placeholders = `$1, $2, $3, $4, $5, $6, $7, $8, $9`;
 
-    return this.candidates.save(
-      this.candidates.create({
-        externalId: candidate.externalId ?? null,
-        source: candidate.source,
-        profileText: candidate.profileText,
-        structuredProfile: toJsonbColumn(candidate.structuredProfile),
-        name: candidate.name ?? null,
-        headline: candidate.headline ?? null,
-        location: candidate.location ?? null,
-        photoUrl: candidate.photoUrl ?? null,
-      }),
+    const rows = await this.dataSource.query<{ id: string }[]>(
+      candidate.externalId
+        ? `insert into candidates (${columns}) values (${placeholders})
+           on conflict (external_id) do update set
+             source = excluded.source,
+             profile_text = excluded.profile_text,
+             structured_profile = excluded.structured_profile,
+             name = excluded.name,
+             headline = excluded.headline,
+             location = excluded.location,
+             photo_url = excluded.photo_url,
+             email = excluded.email
+           returning id`
+        : `insert into candidates (${columns}) values (${placeholders}) returning id`,
+      values,
     );
+    return this.candidates.findOneByOrFail({ id: rows[0]!.id });
   }
 
   async insertClassificationResult(
@@ -111,7 +119,12 @@ export class ResultsService {
   private async queryCandidatesWithLatestResult(onlyContact: boolean): Promise<ShortlistedCandidateRow[]> {
     const rows = await this.dataSource.query<RawShortlistedRow[]>(`
       select c.id as "candidateId", c.name, c.headline, c.location,
-             c.external_id as "linkedinUrl", c.photo_url as "photoUrl",
+             c.source, c.email,
+             case when c.source = 'linkedin' then c.external_id end as "linkedinUrl",
+             c.photo_url as "photoUrl",
+             (select mt.link from mail_threads mt
+              where mt.candidate_id = c.id
+              order by mt.updated_at desc limit 1) as "emailLink",
              r.role_id as "roleId", r.composite_score as "compositeScore",
              r.composite_confidence as "compositeConfidence",
              r.recommendation, r.needs_review as "needsReview",
@@ -134,7 +147,10 @@ export class ResultsService {
       name: row.name,
       headline: row.headline,
       location: row.location,
+      source: row.source,
+      email: row.email,
       linkedinUrl: row.linkedinUrl,
+      emailLink: row.emailLink,
       photoUrl: row.photoUrl,
       roleId: row.roleId,
       compositeScore: Number(row.compositeScore),
@@ -164,7 +180,10 @@ interface RawShortlistedRow {
   name: string | null;
   headline: string | null;
   location: string | null;
+  source: CandidateInput["source"];
+  email: string | null;
   linkedinUrl: string | null;
+  emailLink: string | null;
   photoUrl: string | null;
   roleId: string;
   compositeScore: string;
@@ -180,7 +199,11 @@ export interface ShortlistedCandidateRow {
   name: string | null;
   headline: string | null;
   location: string | null;
+  source: CandidateInput["source"];
+  email: string | null;
   linkedinUrl: string | null;
+  /** link to the candidate's latest email thread (email candidates only) */
+  emailLink: string | null;
   photoUrl: string | null;
   roleId: string;
   compositeScore: number;

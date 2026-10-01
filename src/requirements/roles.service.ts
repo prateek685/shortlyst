@@ -40,8 +40,14 @@ export class RolesService {
   /** A role that fails validation is logged and excluded rather than
    * breaking the whole listing for every other role. */
   async listRoles(): Promise<{ roleId: string }[]> {
+    return (await this.listValidRoles()).map(({ roleId }) => ({ roleId }));
+  }
+
+  /** Valid roles with their descriptions — the open roles the mail triage
+   * offers Jev as its role "choice". */
+  async listValidRoles(): Promise<{ roleId: string; description?: string }[]> {
     const roles = await this.roles.find();
-    const valid: { roleId: string }[] = [];
+    const valid: { roleId: string; description?: string }[] = [];
     for (const role of roles) {
       const [dims, mhs] = await Promise.all([
         this.dimensions.find({ where: { role: { id: role.id } } }),
@@ -49,7 +55,7 @@ export class RolesService {
       ]);
       try {
         validateRoleRequirements(this.toRoleRequirements(role, dims, mhs));
-        valid.push({ roleId: role.roleId });
+        valid.push({ roleId: role.roleId, ...(role.description ? { description: role.description } : {}) });
       } catch (err) {
         console.warn(`[roles] skipping invalid role "${role.roleId}": ${(err as Error).message}`);
       }
@@ -81,6 +87,7 @@ export class RolesService {
           roleRow.contactThreshold = role.thresholds.contact;
           roleRow.rejectThreshold = role.thresholds.reject;
           roleRow.confidenceFloor = role.thresholds.confidenceFloor;
+          roleRow.description = role.description ?? null;
           roleRow = await manager.save(roleRow);
         } else {
           roleRow = await manager.save(
@@ -89,6 +96,7 @@ export class RolesService {
               contactThreshold: role.thresholds.contact,
               rejectThreshold: role.thresholds.reject,
               confidenceFloor: role.thresholds.confidenceFloor,
+              description: role.description ?? null,
             }),
           );
         }
@@ -140,6 +148,7 @@ export class RolesService {
   ): RoleRequirements {
     return {
       roleId: role.roleId,
+      ...(role.description ? { description: role.description } : {}),
       dimensions: dims.map((d) => ({
         id: d.dimensionId,
         instructions: d.instructions,

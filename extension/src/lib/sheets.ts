@@ -171,7 +171,7 @@ export async function replaceSheetWithCandidates(
     c.location ?? "",
     c.linkedinUrl ?? "",
     c.photoUrl ?? "",
-    "",
+    c.email ?? "",
     "",
     c.roleId,
     c.compositeScore,

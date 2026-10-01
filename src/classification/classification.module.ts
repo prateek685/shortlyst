@@ -9,5 +9,6 @@ import { RolesController } from "./roles.controller";
   imports: [StoreModule, RequirementsModule],
   controllers: [ClassificationController, RolesController],
   providers: [ClassificationService],
+  exports: [ClassificationService],
 })
 export class ClassificationModule {}

@@ -1,6 +1,9 @@
 import type {
   CandidateInput,
   ClassificationResult,
+  MailConnectionStatus,
+  MailProviderInfo,
+  MailRecentThread,
   RoleImportSummary,
   RoleRequirements,
   RoleSummary,
@@ -83,4 +86,35 @@ export function getAllCandidates(): Promise<ShortlistedCandidate[]> {
 
 export function getRoleDetail(roleId: string): Promise<RoleRequirements> {
   return request<RoleRequirements>(`/roles/${encodeURIComponent(roleId)}`);
+}
+
+// ---------- Mail intake (Mailboxes section) ----------
+
+export function getMailProviders(): Promise<MailProviderInfo[]> {
+  return request<MailProviderInfo[]>("/mail/providers");
+}
+
+export function getMailConnections(): Promise<MailConnectionStatus[]> {
+  return request<MailConnectionStatus[]>("/mail/connections");
+}
+
+export function getMailThreads(limit = 50): Promise<MailRecentThread[]> {
+  return request<MailRecentThread[]>(`/mail/threads?limit=${limit}`);
+}
+
+/** The provider's sign-in URL (with a signed, short-lived state) to open in a new tab. */
+export function getMailConnectUrl(provider: string): Promise<{ url: string }> {
+  return request<{ url: string }>(`/mail/connections/${encodeURIComponent(provider)}/connect-url`, { method: "POST" });
+}
+
+export function syncMailbox(connectionId: string): Promise<{ queued: true }> {
+  return request<{ queued: true }>(`/mail/connections/${encodeURIComponent(connectionId)}/sync`, { method: "POST" });
+}
+
+export function retryFailedMail(): Promise<{ requeued: number }> {
+  return request<{ requeued: number }>("/mail/retry-failed", { method: "POST" });
+}
+
+export function disconnectMailbox(connectionId: string): Promise<{ deleted: true }> {
+  return request<{ deleted: true }>(`/mail/connections/${encodeURIComponent(connectionId)}`, { method: "DELETE" });
 }

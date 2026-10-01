@@ -1,5 +1,6 @@
 import {
   TypeSafeClient,
+  choice,
   noul,
   score,
   type Questions,
@@ -9,7 +10,7 @@ import {
 } from "@typesafe-ai/sdk";
 import type { LangfuseTraceClient } from "langfuse";
 
-export { noul, score };
+export { choice, noul, score };
 export type { Questions };
 
 // Lazily constructed so importing pure helpers (noul/score) — e.g. from

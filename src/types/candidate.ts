@@ -36,6 +36,8 @@ export interface CandidateInput {
   headline?: string;
   location?: string;
   photoUrl?: string;
+  /** the candidate's email address — the sender, for the email intake */
+  email?: string;
 }
 
 export interface DimensionScoreResult {
