@@ -28,6 +28,9 @@ export const dataSourceOptions = {
   ],
   migrations: [__dirname + "/migrations/*.{ts,js}"],
   synchronize: false, // schema changes only ever go through migrations, never auto-sync
+  // Deployed containers apply pending migrations on start (RUN_MIGRATIONS=true
+  // in docker-compose.prod.yml); locally they're run with `npm run migrate`.
+  migrationsRun: process.env.RUN_MIGRATIONS === "true",
 };
 
 export const AppDataSource = new DataSource(dataSourceOptions);

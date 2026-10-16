@@ -8,3 +8,7 @@ secrets/
 .claude/
 extension-backup-*/
 *.pdf
+
+# deploy.sh output
+build/
+deploy/Caddyfile

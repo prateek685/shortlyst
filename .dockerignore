@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.production.example
+secrets
+node_modules
+dist
+build
+deploy/Caddyfile
+extension
+**/*.spec.ts
+**/__fixtures__
+*.pdf
+*.md

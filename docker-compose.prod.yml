@@ -1,0 +1,101 @@
+# Production stack — started by ./deploy.sh, which also fills in the
+# generated secrets in .env and writes deploy/Caddyfile.
+#
+#   app       Shortlyst backend (applies database migrations on start)
+#   db        Postgres for Shortlyst
+#   caddy     HTTPS in front of the app (certificates from Let's Encrypt)
+#   langfuse  optional tracing UI + its own Postgres (profile "langfuse")
+#
+# Only caddy is reachable from outside (ports 80 and 443).
+
+name: shortlyst
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "3000"
+      RUN_MIGRATIONS: "true"
+      DATABASE_URL: postgres://shortlyst:${POSTGRES_PASSWORD}@db:5432/shortlyst
+      MAIL_OAUTH_REDIRECT_BASE: https://${DOMAIN}/mail/oauth
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shortlyst
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: shortlyst
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shortlyst"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - db_data:/var/lib/postgresql
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  langfuse:
+    profiles: ["langfuse"]
+    image: langfuse/langfuse:2
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://langfuse:${LANGFUSE_DB_PASSWORD}@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: https://${LANGFUSE_DOMAIN}
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
+      SALT: ${LANGFUSE_SALT}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
+      TELEMETRY_ENABLED: "false"
+      AUTH_DISABLE_SIGNUP: "true"
+      # Created on first start, so the app's keys work without any clicking.
+      LANGFUSE_INIT_ORG_ID: shortlyst
+      LANGFUSE_INIT_ORG_NAME: Shortlyst
+      LANGFUSE_INIT_PROJECT_ID: shortlyst
+      LANGFUSE_INIT_PROJECT_NAME: Shortlyst
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_ADMIN_EMAIL}
+      LANGFUSE_INIT_USER_NAME: Admin
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_ADMIN_PASSWORD}
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+
+  langfuse-db:
+    profiles: ["langfuse"]
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: ${LANGFUSE_DB_PASSWORD}
+      POSTGRES_DB: langfuse
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:
+  langfuse_db_data:

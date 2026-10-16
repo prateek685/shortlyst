@@ -9,13 +9,18 @@ import type {
   RoleSummary,
   ShortlistedCandidate,
 } from "./types.js";
-
-// Hardcoded — no deployed backend yet, so a configurable URL would be
-// solving a problem that doesn't exist. Must match manifest.json's
-// host_permissions entry.
-const BACKEND_URL = "http://localhost:3000";
+import { DEFAULT_BACKEND_URL } from "./config.js";
 
 export const API_KEY_STORAGE_KEY = "shortlystApiKey";
+export const SERVER_URL_STORAGE_KEY = "shortlystServerUrl";
+
+/** The backend address: the one saved on the Options page, else the default
+ * this build was packaged with. The backend allows the extension via CORS. */
+export async function getBackendUrl(): Promise<string> {
+  const stored = await chrome.storage.local.get(SERVER_URL_STORAGE_KEY);
+  const url = (stored[SERVER_URL_STORAGE_KEY] as string | undefined)?.trim() || DEFAULT_BACKEND_URL;
+  return url.replace(/\/+$/, "");
+}
 
 export class MissingApiKeyError extends Error {
   constructor() {
@@ -34,7 +39,7 @@ async function getApiKey(): Promise<string> {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const apiKey = await getApiKey();
-  const response = await fetch(`${BACKEND_URL}${path}`, {
+  const response = await fetch(`${await getBackendUrl()}${path}`, {
     ...init,
     headers: {
       ...init?.headers,
