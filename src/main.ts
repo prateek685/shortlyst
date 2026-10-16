@@ -7,6 +7,9 @@ import { flush } from "./observability/langfuse";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // The Chrome extension calls the API from its own origin; the API key, not
+  // the origin, is what authorises a request.
+  app.enableCors({ origin: /^chrome-extension:\/\// });
   app.useGlobalPipes(
     new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }),
   );

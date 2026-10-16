@@ -11,8 +11,10 @@ import {
   getShortlistedCandidates,
   importRoles,
   retryFailedMail,
+  SERVER_URL_STORAGE_KEY,
   syncMailbox,
 } from "../lib/api.js";
+import { DEFAULT_BACKEND_URL } from "../lib/config.js";
 import {
   CANDIDATES_SHEET_ID_KEY,
   CANDIDATES_SHEET_NAME_KEY,
@@ -38,6 +40,7 @@ import type {
 // ---------- Shortlyst API key ----------
 
 const apiKeyInput = document.getElementById("api-key") as HTMLInputElement;
+const serverUrlInput = document.getElementById("server-url") as HTMLInputElement;
 const apiKeyStatus = document.getElementById("status") as HTMLElement;
 const apiKeyForm = document.getElementById("form") as HTMLFormElement;
 
@@ -52,17 +55,20 @@ function showApiKeyStatus(message: string): void {
 }
 
 async function loadSavedApiKey(): Promise<void> {
-  const stored = await chrome.storage.local.get(API_KEY_STORAGE_KEY);
+  const stored = await chrome.storage.local.get([API_KEY_STORAGE_KEY, SERVER_URL_STORAGE_KEY]);
   const apiKey = stored[API_KEY_STORAGE_KEY] as string | undefined;
   if (apiKey) {
     apiKeyInput.value = apiKey;
   }
+  serverUrlInput.value = (stored[SERVER_URL_STORAGE_KEY] as string | undefined) ?? "";
+  serverUrlInput.placeholder = DEFAULT_BACKEND_URL;
 }
 
 apiKeyForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const apiKey = apiKeyInput.value.trim();
-  chrome.storage.local.set({ [API_KEY_STORAGE_KEY]: apiKey }).then(() => {
+  const serverUrl = serverUrlInput.value.trim().replace(/\/+$/, "");
+  chrome.storage.local.set({ [API_KEY_STORAGE_KEY]: apiKey, [SERVER_URL_STORAGE_KEY]: serverUrl }).then(() => {
     showApiKeyStatus(apiKey ? "Saved." : "Cleared.");
   });
 });

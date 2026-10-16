@@ -632,8 +632,11 @@
       <button id="settings-toggle" class="icon-button" type="button" title="Settings" aria-label="Settings">⚙</button>
 
       <div id="settings-popover" class="settings-popover" hidden>
-        <p class="card-title">Shortlyst API key</p>
         <form id="form">
+          <p class="card-title">Server URL</p>
+          <input id="server-url" type="url" autocomplete="off" placeholder="https://shortlyst.yourcompany.com" />
+          <p class="hint">Where the Shortlyst backend runs. Leave empty to use this build's default.</p>
+          <p class="card-title">Shortlyst API key</p>
           <input id="api-key" type="password" autocomplete="off" placeholder="Paste the SHORTLYST_API_KEY from the backend's .env" />
           <p class="hint">Stored locally in this browser only (chrome.storage.local) — never sent anywhere but your own backend.</p>
           <div class="actions">

@@ -7,10 +7,15 @@ let client: Langfuse | undefined;
 
 export function getLangfuse(): Langfuse {
   if (!client) {
+    const publicKey = process.env.LANGFUSE_PUBLIC_KEY;
+    const secretKey = process.env.LANGFUSE_SECRET_KEY;
     client = new Langfuse({
-      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-      secretKey: process.env.LANGFUSE_SECRET_KEY,
+      publicKey,
+      secretKey,
       baseUrl: process.env.LANGFUSE_HOST,
+      // Langfuse is optional: without keys, traces become no-ops instead of
+      // failed uploads.
+      enabled: Boolean(publicKey && secretKey),
     });
   }
   return client;
